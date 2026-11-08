@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>今日專注清單</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--text:#222;--muted:#777;--line:#e6e3dc;--accent:#2f9e6e;--accent2:#e8f6ef;--warn:#e0673c;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181a;--card:#222426;--text:#eee;--muted:#999;--line:#34373a;--accent:#4cc38a;--accent2:#1d3328;--warn:#f0845c}}
+:root[data-theme="dark"]{--bg:#17181a;--card:#222426;--text:#eee;--muted:#999;--line:#34373a;--accent:#4cc38a;--accent2:#1d3328;--warn:#f0845c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.5}
+main{max-width:520px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.stats{display:flex;gap:12px}
+.stat{flex:1;text-align:center}
+.stat b{display:block;font-size:26px}
+.stat span{font-size:13px;color:var(--muted)}
+.bar{height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin:12px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .4s}
+.week{display:flex;gap:6px;justify-content:space-between;margin-top:10px}
+.day{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.day i{display:block;height:22px;border-radius:6px;background:var(--line);margin-bottom:3px}
+.day.on i{background:var(--accent)}
+.day.today i{outline:2px solid var(--text);outline-offset:1px}
+h2{font-size:16px;margin:0 0 10px}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+li:last-child{border-bottom:0}
+li input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none}
+li span{flex:1;word-break:break-word}
+li.done span{text-decoration:line-through;color:var(--muted)}
+.ic{border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:6px;border-radius:8px}
+.ic:hover{background:var(--accent2)}
+li.focus{background:var(--accent2);border-radius:10px}
+.add{display:flex;gap:8px;margin-top:12px}
+input[type=text]{flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px;min-width:0}
+button.p{padding:10px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;cursor:pointer}
+button.s{padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--text);font-size:15px;cursor:pointer}
+.hint{font-size:13px;color:var(--warn);margin-top:8px;min-height:18px}
+.empty{color:var(--muted);text-align:center;padding:14px 0;font-size:14px}
+.timer{text-align:center}
+.time{font-size:54px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.mode{display:flex;gap:6px;justify-content:center;margin-bottom:6px}
+.mode button{border:1px solid var(--line);background:none;color:var(--muted);border-radius:99px;padding:4px 12px;font-size:13px;cursor:pointer}
+.mode button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ctl{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.cur{font-size:14px;color:var(--muted);min-height:22px}
+.rule{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
+.pop{position:fixed;pointer-events:none;font-size:22px;z-index:99;animation:fly 1.1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),-160px) rotate(var(--r));opacity:0}}
+li em{font-style:normal;font-size:12px;color:var(--muted);white-space:nowrap}
+.tr{display:flex;gap:8px;align-items:center;font-size:14px;margin-bottom:6px}
+.tr input{width:18px;height:18px;accent-color:var(--accent)}
+.mrow{display:flex;justify-content:space-between;font-size:14px;margin-top:12px}
+#pfill{background:#4a8fe0}
+#wfill{background:var(--accent)}
+.ex{padding:10px 0;border-bottom:1px solid var(--line)}
+.ex:last-child{border-bottom:0}
+.exh{display:flex;justify-content:space-between;gap:8px}
+.exh span{color:var(--accent);font-size:14px;white-space:nowrap}
+.ext{font-size:12px;color:var(--muted);margin:2px 0 8px}
+.exr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.setb{width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:none;color:var(--text);font-size:15px;cursor:pointer}
+.setb.on{background:var(--accent);border-color:var(--accent);color:#fff}
+input.kg{width:100px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px;margin-left:auto}
+label.s{padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--text);font-size:15px;cursor:pointer;display:inline-block}
+</style>
+</head>
+<body>
+<main>
+<h1>🎯 今日專注清單</h1>
+<div class="sub" id="date"></div>
+
+<div class="card">
+  <div class="stats">
+    <div class="stat"><b id="prog">0/0</b><span>今日完成</span></div>
+    <div class="stat"><b id="streak">0</b><span>🔥 連續天數</span></div>
+    <div class="stat"><b id="poms">0</b><span>🍅 今日番茄</span></div>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+  <div class="week" id="week"></div>
+  <div class="rule">規則：全部完成才算一天；偶爾斷一天不會歸零，連續兩天沒做才重來。</div>
+</div>
+
+<div class="card">
+  <h2>今天最重要的事</h2>
+  <ul id="list"></ul>
+  <div class="add">
+    <input type="text" id="inp" placeholder="小到兩分鐘內能開始，例如：打開檔案寫第一段" maxlength="60">
+    <button class="p" id="addBtn">新增</button>
+  </div>
+  <div class="hint" id="hint"></div>
+</div>
+
+<div class="card">
+  <h2>🏋️ 重訓計畫（全身 3 天）</h2>
+  <div class="mode" id="wkTabs"><button data-t="A">A 日</button><button data-t="B">B 日</button></div>
+  <div class="sub" id="wkSug" style="text-align:center;margin-bottom:4px"></div>
+  <div id="wkList"></div>
+  <div class="mrow"><span id="wkProg"></span></div>
+  <div class="rule">一週三次（一、三、五），A→B→A，下週 B→A→B。選「還能再做 2～3 下」的重量；三組都做到次數上限且動作標準，下次加 1～2 公斤。深蹲、硬舉、臥推、划船休息 90～120 秒，其他 60～90 秒。第一組先用輕重量熱身；有刺痛（不是痠）就停。</div>
+</div>
+
+<div class="card">
+  <h2>🍱 今日飲食</h2>
+  <label class="tr"><input type="checkbox" id="trainChk"> 今天是重訓日（晚餐飯全吃）</label>
+  <ul id="meals"></ul>
+  <div class="mrow"><span>🔥 熱量 <b id="kc">0</b>/2000 大卡</span><span>💪 蛋白質 <b id="pr">0</b>/110 g</span></div>
+  <div class="bar"><i id="kfill"></i></div>
+  <div class="bar"><i id="pfill"></i></div>
+  <div class="rule">數字為粗估值；蛋白飲請以包裝標示為準。吃了就打勾，系統會自動累計。</div>
+</div>
+
+<div class="card">
+  <h2>⚖️ 體重紀錄（80 → 65 kg）</h2>
+  <div class="stats"><div class="stat"><b id="wnow">—</b><span>最新體重</span></div></div>
+  <div class="bar"><i id="wfill"></i></div>
+  <div class="sub" id="wtxt" style="margin:4px 0 10px"></div>
+  <div class="add"><input type="text" id="winp" inputmode="decimal" placeholder="早上空腹體重，例如 79.6"><button class="p" id="wBtn">記錄</button></div>
+  <div class="rule" id="whist"></div>
+</div>
+
+<div class="card">
+  <h2>💾 資料備份</h2>
+  <div class="sub" id="bkTxt" style="margin-bottom:10px"></div>
+  <div class="ctl" style="justify-content:flex-start;margin-top:0">
+    <button class="p" id="bkOut">匯出備份</button>
+    <label class="s">匯入備份<input type="file" id="bkIn" accept=".json,application/json" hidden></label>
+  </div>
+  <div class="hint" id="bkMsg" style="color:var(--accent)"></div>
+  <div class="rule" style="text-align:left">資料只存在這個瀏覽器；換手機、換瀏覽器或清除資料前，請先匯出。備份檔包含任務、飲食、體重與重訓紀錄。</div>
+</div>
+
+<div class="card timer">
+  <h2>🍅 番茄鐘</h2>
+  <div class="mode">
+    <button data-m="25" class="on">專注 25</button>
+    <button data-m="5">休息 5</button>
+  </div>
+  <div class="time" id="time">25:00</div>
+  <div class="cur" id="cur">點清單上的 ▶ 選擇要專注的任務</div>
+  <div class="ctl">
+    <button class="p" id="go">開始</button>
+    <button class="s" id="reset">重設</button>
+  </div>
+</div>
+</main>
+
+<script>
+(function(){
+var KEY="focus-checklist-v1";
+var S={tasks:[],history:[],poms:{},lastDate:"",focusId:null};
+function today(d){d=d||new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==="object")S=Object.assign(S,o)}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function daysAgo(n){var d=new Date();d.setDate(d.getDate()-n);return today(d)}
+
+load();
+var t0=today();
+if(S.lastDate&&S.lastDate!==t0){S.tasks=S.tasks.filter(function(x){return !x.done})}
+S.lastDate=t0;save();
+
+function calcStreak(){
+  var h=S.history,n=0,i=h.indexOf(t0)>=0?0:1,miss=0;
+  for(;i<400;i++){
+    if(h.indexOf(daysAgo(i))>=0){n++;miss=0}
+    else{miss++;if(miss>=2)break}
+  }
+  return n;
+}
+function $(id){return document.getElementById(id)}
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+function render(){
+  var total=S.tasks.length,done=S.tasks.filter(function(x){return x.done}).length;
+  var all=total>0&&done===total;
+  var idx=S.history.indexOf(t0);
+  if(all&&idx<0)S.history.push(t0);
+  if(!all&&idx>=0)S.history.splice(idx,1);
+  save();
+  $("date").textContent=new Date().toLocaleDateString("zh-TW",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+  $("prog").textContent=done+"/"+total;
+  $("fill").style.width=(total?done/total*100:0)+"%";
+  $("streak").textContent=calcStreak();
+  $("poms").textContent=S.poms[t0]||0;
+  var w="";
+  for(var i=6;i>=0;i--){
+    var k=daysAgo(i),d=new Date();d.setDate(d.getDate()-i);
+    w+='<div class="day'+(S.history.indexOf(k)>=0?' on':'')+(i===0?' today':'')+'"><i></i>'+"日一二三四五六".charAt(d.getDay())+'</div>';
+  }
+  $("week").innerHTML=w;
+  var html="";
+  S.tasks.forEach(function(x){
+    html+='<li class="'+(x.done?'done ':'')+(S.focusId===x.id?'focus':'')+'" data-id="'+x.id+'">'+
+    '<input type="checkbox"'+(x.done?' checked':'')+'><span>'+esc(x.text)+'</span>'+
+    '<button class="ic" data-a="f" title="用番茄鐘專注">▶</button>'+
+    '<button class="ic" data-a="d" title="刪除">✕</button></li>';
+  });
+  $("list").innerHTML=html||'<div class="empty">還沒有任務，先加一件最小的事吧</div>';
+  var f=S.tasks.filter(function(x){return x.id===S.focusId})[0];
+  $("cur").textContent=f?"專注中：「"+f.text+"」":"點清單上的 ▶ 選擇要專注的任務";
+  $("hint").textContent=total>3?"提醒：任務超過 3 件了，挑最重要的就好，清單太長容易想逃。":"";
+  renderMeal();
+}
+
+function burst(el){
+  var r=el.getBoundingClientRect(),em=["🎉","✨","🌟","💚"];
+  for(var i=0;i<8;i++){
+    var p=document.createElement("div");p.className="pop";p.textContent=em[i%4];
+    p.style.left=(r.left+12)+"px";p.style.top=(r.top)+"px";
+    p.style.setProperty("--dx",(Math.random()*160-80)+"px");
+    p.style.setProperty("--r",(Math.random()*360-180)+"deg");
+    document.body.appendChild(p);
+    setTimeout(function(q){return function(){q.remove()}}(p),1200);
+  }
+}
+var ctx;
+function beep(n){
+  try{
+    ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+    for(var i=0;i<(n||1);i++){
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.frequency.value=i?880:660;
+      var s=ctx.currentTime+i*0.18;
+      g.gain.setValueAtTime(0.15,s);g.gain.exponentialRampToValueAtTime(0.001,s+0.15);
+      o.start(s);o.stop(s+0.16);
+    }
+  }catch(e){}
+}
+
+function add(){
+  var v=$("inp").value.trim();if(!v)return;
+  S.tasks.push({id:Date.now()+"",text:v,done:false});
+  $("inp").value="";render();
+}
+$("addBtn").onclick=add;
+$("inp").onkeydown=function(e){if(e.key==="Enter")add()};
+$("list").onclick=function(e){
+  var li=e.target.closest("li");if(!li)return;
+  var id=li.getAttribute("data-id"),t=S.tasks.filter(function(x){return x.id===id})[0];if(!t)return;
+  var a=e.target.getAttribute("data-a");
+  if(a==="d"){S.tasks=S.tasks.filter(function(x){return x.id!==id});if(S.focusId===id)S.focusId=null;render()}
+  else if(a==="f"){S.focusId=id;setMode(25);start()}
+  else if(e.target.type==="checkbox"){
+    t.done=e.target.checked;
+    if(t.done){beep(1);burst(e.target);
+      if(S.tasks.every(function(x){return x.done})){beep(3);setTimeout(function(){burst(e.target)},250)}}
+    render();
+  }
+};
+
+/* Meals & weight */
+var MEALS=[
+ {id:"b",name:"早餐：紅豆麵包",kcal:200,p:6},
+ {id:"m",name:"早上：低脂保久乳 500cc",kcal:200,p:16},
+ {id:"l",name:"午餐：雞胸肉＋青菜",kcal:250,p:35},
+ {id:"d",name:"晚餐：燒臘油雞飯（去皮、飯減 1/3）",alt:"晚餐：燒臘油雞飯（去皮、飯全吃）",kcal:750,p:30},
+ {id:"s",name:"重訓後：光泉蛋白飲",kcal:200,p:15},
+ {id:"e",name:"加碼：水煮蛋或豆干（選填）",kcal:80,p:7},
+ {id:"f",name:"彈性額度：想吃的小點心（選填）",kcal:150,p:2}
+];
+function renderMeal(){
+  renderWk();renderBk();
+  S.meals=S.meals||{};S.train=S.train||{};S.weights=S.weights||[];
+  var m=S.meals[t0]||{},tr=!!S.train[t0],kc=0,pr=0,h="";
+  MEALS.forEach(function(x){
+    var k=x.kcal+(x.id==="d"&&tr?120:0),on=!!m[x.id];
+    if(on){kc+=k;pr+=x.p}
+    h+='<li class="'+(on?'done':'')+'" data-id="'+x.id+'"><input type="checkbox"'+(on?' checked':'')+'><span>'+(x.id==="d"&&tr?x.alt:x.name)+'</span><em>'+k+' 大卡 · '+x.p+' g</em></li>';
+  });
+  $("meals").innerHTML=h;
+  $("trainChk").checked=tr;
+  $("kc").textContent=kc;$("pr").textContent=pr;
+  $("kfill").style.width=Math.min(100,kc/2000*100)+"%";
+  $("pfill").style.width=Math.min(100,pr/110*100)+"%";
+  $("kfill").style.background=kc>2000?"var(--warn)":"var(--accent)";
+  var ws=S.weights,last=ws.length?ws[ws.length-1]:null;
+  $("wnow").textContent=last?last.w+" kg":"—";
+  $("wfill").style.width=(last?Math.max(0,Math.min(100,(80-last.w)/15*100)):0)+"%";
+  $("wtxt").textContent=last?"距離 65 kg 還差 "+Math.max(0,last.w-65).toFixed(1)+" kg":"起點 80 kg → 目標 65 kg";
+  $("whist").textContent=ws.length?"最近紀錄："+ws.slice(-4).reverse().map(function(x){return x.d.slice(5)+" "+x.w}).join(" ｜ "):"建議每週固定一天早上空腹量，看 2～3 週的平均趨勢。";
+}
+$("meals").onclick=function(e){
+  var li=e.target.closest("li");if(!li||e.target.type!=="checkbox")return;
+  S.meals=S.meals||{};var m=S.meals[t0]=S.meals[t0]||{};
+  m[li.getAttribute("data-id")]=e.target.checked;
+  save();beep(1);renderMeal();
+};
+$("trainChk").onchange=function(){S.train=S.train||{};S.train[t0]=this.checked;save();renderMeal()};
+$("wBtn").onclick=function(){
+  var v=parseFloat($("winp").value);
+  if(!(v>30&&v<300))return;
+  S.weights=S.weights||[];
+  S.weights=S.weights.filter(function(x){return x.d!==t0});
+  S.weights.push({d:t0,w:Math.round(v*10)/10});
+  $("winp").value="";save();renderMeal();
+};
+
+/* Workout */
+var WK={
+ A:[
+  {n:"高腳杯深蹲",s:3,r:"8～12",t:"雙手抱一支啞鈴在胸前，背打直，蹲到大腿約與地面平行"},
+  {n:"啞鈴平板臥推",s:3,r:"8～12",t:"肩胛夾緊，手肘約 45～60 度，啞鈴下放到胸口兩側"},
+  {n:"單手啞鈴划船",s:3,r:"10～12（每邊）",t:"一手一膝撐在椅子上，用手肘把啞鈴往口袋拉，不要轉身借力"},
+  {n:"啞鈴羅馬尼亞硬舉",s:3,r:"10～12",t:"膝微彎不變，屁股後推，啞鈴貼著大腿下滑，下背保持平直"},
+  {n:"上斜啞鈴臥推",s:2,r:"10～12",t:"椅背調成約 30 度，動作與平板臥推相同"}
+ ],
+ B:[
+  {n:"啞鈴羅馬尼亞硬舉",s:3,r:"8～10",t:"感覺大腿後側拉緊就停，不用追求彎很低"},
+  {n:"上斜啞鈴臥推",s:3,r:"8～12",t:"椅背調成約 30 度，肩胛夾緊"},
+  {n:"胸貼椅啞鈴划船",s:3,r:"10～12",t:"椅背調上斜，胸口趴在椅背上，把啞鈴往髖部方向拉"},
+  {n:"啞鈴弓步蹲或分腿蹲",s:3,r:"8～10（每腳）",t:"後腳可墊在椅子上，前膝跟著腳尖方向"},
+  {n:"啞鈴平板臥推",s:2,r:"10～12",t:"動作要穩，下放控制 2 秒"}
+ ]
+};
+function wkInit(){S.wk=S.wk||{};var w=S.wk;w.type=w.type||{};w.sets=w.sets||{};w.kg=w.kg||{};w.done=w.done||[];return w}
+function wkSug(w){var l=w.done.length?w.done[w.done.length-1].t:null;return l==="A"?"B":"A"}
+function wkCur(w){return w.type[t0]||wkSug(w)}
+function wkTally(w,cur){
+  var ss=w.sets[t0]||{},tot=0,dn=0;
+  WK[cur].forEach(function(x,i){var a=ss[cur+i]||[];for(var j=0;j<x.s;j++){tot++;if(a[j])dn++}});
+  return {tot:tot,dn:dn};
+}
+function renderWk(){
+  var w=wkInit(),cur=wkCur(w),sug=wkSug(w),ss=w.sets[t0]||{},h="";
+  WK[cur].forEach(function(x,i){
+    var key=cur+i,a=ss[key]||[],b="";
+    for(var j=0;j<x.s;j++)b+='<button class="setb'+(a[j]?' on':'')+'" data-k="'+key+'" data-j="'+j+'">'+(j+1)+'</button>';
+    h+='<div class="ex"><div class="exh"><b>'+x.n+'</b><span>'+x.s+' × '+x.r+'</span></div><div class="ext">'+x.t+'</div><div class="exr">'+b+'<input type="number" inputmode="decimal" step="0.5" class="kg" data-n="'+x.n+'" placeholder="每手 kg" value="'+(w.kg[x.n]||"")+'"></div></div>';
+  });
+  $("wkList").innerHTML=h;
+  Array.prototype.forEach.call($("wkTabs").children,function(b){b.classList.toggle("on",b.getAttribute("data-t")===cur)});
+  $("wkSug").textContent="建議今天做 "+sug+" 日（依上次完成的菜單輪替）";
+  var t=wkTally(w,cur),wkc=w.done.filter(function(x){return x.d>=daysAgo(6)}).length;
+  $("wkProg").textContent="本週已完成 "+wkc+"/3 次 · 今天 "+t.dn+"/"+t.tot+" 組"+(t.dn===t.tot?" ✅":"");
+}
+$("wkTabs").onclick=function(e){
+  var t=e.target.getAttribute("data-t");if(!t)return;
+  var w=wkInit();w.type[t0]=t;save();renderMeal();
+};
+$("wkList").onclick=function(e){
+  var k=e.target.getAttribute("data-k");if(!k)return;
+  var w=wkInit(),cur=wkCur(w),j=+e.target.getAttribute("data-j");
+  var d=w.sets[t0]=w.sets[t0]||{},a=d[k]=d[k]||[];
+  a[j]=!a[j];
+  var t=wkTally(w,cur),has=w.done.some(function(x){return x.d===t0});
+  if(t.dn===t.tot&&!has){
+    w.done.push({d:t0,t:cur});S.train=S.train||{};S.train[t0]=true;beep(3);burst(e.target);
+  }else if(t.dn!==t.tot&&has){
+    w.done=w.done.filter(function(x){return x.d!==t0});
+  }else if(a[j]){beep(1)}
+  save();renderMeal();
+};
+$("wkList").onchange=function(e){
+  if(!e.target.classList.contains("kg"))return;
+  var w=wkInit();w.kg[e.target.getAttribute("data-n")]=e.target.value;save();
+};
+
+/* Backup */
+function renderBk(){
+  var lb=S.lastBackup,el=$("bkTxt");
+  if(!lb){el.textContent="還沒備份過，建議每週備份一次。";return}
+  var n=Math.round((new Date(t0)-new Date(lb))/86400000);
+  el.textContent="上次備份："+lb+(n>=7?"（已超過 "+n+" 天，該備份了）":"");
+}
+$("bkOut").onclick=function(){
+  try{
+    S.lastBackup=t0;save();
+    var blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+    var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="focus-backup-"+t0+".json";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+    $("bkMsg").textContent="已匯出，請到下載資料夾找檔案。";renderBk();
+  }catch(e){$("bkMsg").textContent="匯出失敗，請換個瀏覽器試試。"}
+};
+$("bkIn").onchange=function(){
+  var f=this.files&&this.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var o=JSON.parse(r.result);
+      if(!o||typeof o!=="object"||!Array.isArray(o.tasks))throw new Error("bad");
+      S=Object.assign({tasks:[],history:[],poms:{},lastDate:"",focusId:null},o);
+      if(o.lastDate&&o.lastDate!==t0)S.tasks=S.tasks.filter(function(x){return !x.done});
+      S.lastDate=t0;save();render();
+      $("bkMsg").textContent="匯入成功，紀錄已還原。";
+    }catch(e){$("bkMsg").textContent="檔案格式不對，請選擇之前匯出的備份檔。"}
+  };
+  r.readAsText(f);this.value="";
+};
+
+/* Pomodoro */
+var mode=25,left=25*60,endAt=0,tick=null;
+function fmt(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function show(){$("time").textContent=fmt(left);document.title=(tick?fmt(left)+" · ":"")+"今日專注清單"}
+function setMode(m){
+  stop();mode=m;left=m*60;
+  Array.prototype.forEach.call(document.querySelectorAll(".mode button"),function(b){b.classList.toggle("on",+b.getAttribute("data-m")===m)});
+  show();
+}
+function stop(){if(tick){clearInterval(tick);tick=null}$("go").textContent="開始"}
+function start(){
+  if(tick)return;
+  endAt=Date.now()+left*1000;
+  $("go").textContent="暫停";
+  tick=setInterval(function(){
+    left=Math.max(0,Math.round((endAt-Date.now())/1000));
+    show();
+    if(left<=0){
+      stop();beep(3);
+      if(mode===25){S.poms[t0]=(S.poms[t0]||0)+1;save();render();setMode(5)}else{setMode(25)}
+    }
+  },250);
+}
+$("go").onclick=function(){if(tick){stop();show()}else{start()}};
+$("reset").onclick=function(){setMode(mode)};
+Array.prototype.forEach.call(document.querySelectorAll(".mode button"),function(b){b.onclick=function(){setMode(+b.getAttribute("data-m"))}});
+
+render();show();
+})();
+</script>
+</body>
+</html>
